@@ -358,6 +358,61 @@ function material(color, roughness = 0.82, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness });
 }
 
+function createTVScreenTexture() {
+  const canvas = createCanvas(768);
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#263840');
+  gradient.addColorStop(0.5, '#6d8d88');
+  gradient.addColorStop(1, '#d0a17d');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = '#ead6b9';
+  ctx.beginPath();
+  ctx.arc(585, 172, 92, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = '#304a47';
+  ctx.beginPath();
+  ctx.moveTo(0, 510);
+  ctx.bezierCurveTo(120, 395, 255, 450, 365, 355);
+  ctx.bezierCurveTo(470, 270, 620, 350, 768, 250);
+  ctx.lineTo(768, 768);
+  ctx.lineTo(0, 768);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#6e5846';
+  ctx.beginPath();
+  ctx.moveTo(0, 610);
+  ctx.bezierCurveTo(145, 530, 300, 625, 445, 510);
+  ctx.bezierCurveTo(565, 420, 665, 505, 768, 430);
+  ctx.lineTo(768, 768);
+  ctx.lineTo(0, 768);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = 0.28;
+  const sheen = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  sheen.addColorStop(0, 'rgba(255,255,255,0.02)');
+  sheen.addColorStop(0.42, 'rgba(255,255,255,0.38)');
+  sheen.addColorStop(0.58, 'rgba(255,255,255,0.05)');
+  sheen.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = sheen;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalAlpha = 1;
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+const tvScreenTexture = createTVScreenTexture();
+
 const mats = {
   wall: material(0xf4efe6, 0.95),
   wallCap: material(0xd5c7b5, 0.88),
@@ -384,6 +439,14 @@ const mats = {
     roughness: 0.18,
     transparent: true,
     opacity: 0.75,
+  }),
+  tvScreen: new THREE.MeshStandardMaterial({
+    map: tvScreenTexture,
+    emissive: 0x58706d,
+    emissiveMap: tvScreenTexture,
+    emissiveIntensity: 0.42,
+    roughness: 0.2,
+    metalness: 0.04,
   }),
   appliance: material(0xdedcd7, 0.36, 0.24),
   black: material(0x2d2926, 0.62),
@@ -764,9 +827,37 @@ function addSofa(group, colliders) {
   group.add(meshRoundedBox(0.7, 0.24, 0.42, 0.04, mats.darkWood, 5.58, 0.16, 1.3));
   addCollider(colliders, 5.58, 1.3, 0.7, 0.42, 0, 0.5);
 
-  group.add(meshRoundedBox(0.22, 0.38, 1.12, 0.025, mats.darkWood, 6.93, 0.24, 1.25));
-  group.add(meshRoundedBox(0.035, 0.8, 0.98, 0.018, mats.darkGlass, 7.03, 1.01, 1.25));
-  addCollider(colliders, 6.93, 1.25, 0.25, 1.12, 0, 1.5);
+  // Media console and a clearly visible 55-inch television mounted on the stair-core wall.
+  const mediaConsole = new THREE.Group();
+  mediaConsole.name = 'media-console';
+  mediaConsole.add(meshRoundedBox(0.3, 0.4, 1.42, 0.035, mats.darkWood, 6.88, 0.28, 1.25));
+  mediaConsole.add(meshBox(0.018, 0.29, 1.3, mats.wood, 6.72, 0.28, 1.25));
+  mediaConsole.add(meshBox(0.018, 0.29, 0.018, mats.bronze, 6.705, 0.28, 1.25));
+  group.add(mediaConsole);
+
+  const television = new THREE.Group();
+  television.name = 'television';
+  television.position.set(7.015, 1.28, 1.25);
+  television.add(meshRoundedBox(0.065, 0.78, 1.34, 0.025, mats.black, 0, 0, 0));
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.69), mats.tvScreen);
+  screen.name = 'television-screen';
+  screen.rotation.y = -Math.PI / 2;
+  screen.position.set(-0.034, 0, 0);
+  screen.castShadow = false;
+  television.add(screen);
+  television.add(meshRoundedBox(0.018, 0.045, 0.34, 0.012, mats.black, -0.045, -0.435, 0));
+  group.add(television);
+
+  const soundbar = meshRoundedBox(0.09, 0.075, 0.82, 0.025, mats.black, 6.7, 0.56, 1.25);
+  soundbar.name = 'soundbar';
+  group.add(soundbar);
+
+  const remote = meshRoundedBox(0.15, 0.025, 0.05, 0.012, mats.black, 5.56, 0.3, 1.2);
+  remote.rotation.y = 0.2;
+  remote.name = 'remote-control';
+  group.add(remote);
+
+  addCollider(colliders, 6.88, 1.25, 0.32, 1.42, 0, 1.7);
 }
 
 function addCabinetUnit(group, x, y, z, width, depth, height, topMat = mats.porcelain) {

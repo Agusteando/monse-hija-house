@@ -1,1 +1,1 @@
-Mejora el menú móvil de opciones con una interfaz más clara y táctil
+Restaura y mejora la televisión de la sala con consola y detalles realistas

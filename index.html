@@ -31,108 +31,35 @@
           aria-controls="toolbar"
           aria-expanded="false"
         >
-          <span class="mobile-menu-icon" aria-hidden="true">
-            <i></i><i></i><i></i>
-          </span>
-          <span>Opciones</span>
+          Opciones
         </button>
 
         <nav class="toolbar" id="toolbar" aria-label="Herramientas">
-          <div class="mobile-menu-heading">
-            <div>
-              <strong>Opciones del recorrido</strong>
-              <span>Ajusta la vista, el ambiente y la presentación.</span>
-            </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" type="button" aria-label="Cerrar opciones">
-              <span aria-hidden="true">×</span>
-            </button>
-          </div>
-
-          <section class="toolbar-section toolbar-section-view" aria-label="Opciones de vista">
-            <span class="toolbar-section-title">Vista</span>
-            <div class="toolbar-option-grid">
-              <button
-                class="tool is-active"
-                id="labelsButton"
-                type="button"
-                aria-pressed="true"
-                data-icon="Aa"
-              >
-                Etiquetas
-              </button>
-              <button
-                class="tool is-active"
-                id="wallsButton"
-                type="button"
-                aria-pressed="true"
-                data-icon="▥"
-              >
-                Muros
-              </button>
-              <button
-                class="tool"
-                id="roofButton"
-                type="button"
-                aria-pressed="false"
-                data-icon="⌂"
-              >
-                Techo
-              </button>
-              <button
-                class="tool is-active"
-                id="orbitButton"
-                type="button"
-                aria-pressed="true"
-                data-icon="◎"
-              >
-                Vista órbita
-              </button>
-            </div>
-          </section>
-
-          <section class="toolbar-section toolbar-section-theme" aria-label="Paleta de materiales">
-            <span class="toolbar-section-title">Ambiente</span>
-            <label class="theme-picker" for="themeSelect">
-              <span class="theme-picker-copy">
-                <strong>Paleta de materiales</strong>
-                <small>Cambia colores, maderas y textiles.</small>
-              </span>
-              <span class="theme-select-wrap">
-                <select id="themeSelect" aria-label="Elegir paleta de materiales"></select>
-              </span>
-            </label>
-          </section>
-
-          <section class="toolbar-section toolbar-section-actions" aria-label="Acciones">
-            <span class="toolbar-section-title">Acciones</span>
-            <div class="toolbar-action-grid">
-              <button class="tool utility-tool" id="fullscreenButton" type="button" data-icon="↗">
-                Pantalla completa
-              </button>
-              <button class="tool utility-tool" id="exportButton" type="button" data-icon="↓">
-                Exportar OBJ
-              </button>
-            </div>
-          </section>
-
-          <button class="walk-button" id="walkButton" type="button">
-            <span class="walk-button-icon" aria-hidden="true">→</span>
-            <span>
-              <strong>Caminar</strong>
-              <small>Explora la casa en primera persona</small>
-            </span>
+          <button class="tool is-active" id="labelsButton" type="button" aria-pressed="true">
+            Etiquetas
           </button>
+          <button class="tool is-active" id="wallsButton" type="button" aria-pressed="true">
+            Muros
+          </button>
+          <button class="tool" id="roofButton" type="button" aria-pressed="false">
+            Techo
+          </button>
+          <button class="tool is-active" id="orbitButton" type="button" aria-pressed="true">
+            Vista órbita
+          </button>
+          <label class="theme-picker" for="themeSelect">
+            <span>Paleta</span>
+            <select id="themeSelect"></select>
+          </label>
+          <button class="tool" id="fullscreenButton" type="button">
+            Pantalla completa
+          </button>
+          <button class="tool" id="exportButton" type="button">
+            Exportar OBJ
+          </button>
+          <button class="walk-button" id="walkButton" type="button">Caminar</button>
         </nav>
       </header>
-
-      <button
-        class="mobile-menu-scrim"
-        id="mobileMenuScrim"
-        type="button"
-        aria-label="Cerrar menú de opciones"
-        aria-hidden="true"
-        tabindex="-1"
-      ></button>
 
       <main id="viewport" aria-label="Modelo tridimensional de la vivienda"></main>
 
