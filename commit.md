@@ -1,1 +1,1 @@
-Hace visible y accesible el modo caminar en dispositivos móviles
+Corrige la reproducción de música en dispositivos móviles

@@ -55,6 +55,7 @@ const lookPad = requiredElement('lookPad');
 const mobileInteractButton = requiredElement('mobileInteractButton');
 const mobileJumpButton = requiredElement('mobileJumpButton');
 const mobileExitButton = requiredElement('mobileExitButton');
+const ambientAudio = requiredElement('ambientAudio');
 
 const touchDevice =
   window.matchMedia('(pointer: coarse)').matches ||
@@ -303,7 +304,7 @@ mobileMenuClose.addEventListener('click', closeMobileMenu);
 mobileMenuScrim.addEventListener('click', closeMobileMenu);
 
 document.addEventListener('pointerdown', (event) => {
-  if (!touchDevice || !toolbar.classList.contains('is-open')) return;
+  if (!toolbar.classList.contains('is-open')) return;
   if (!event.target.closest('.topbar')) closeMobileMenu();
 });
 
@@ -321,7 +322,7 @@ async function toggleFullscreen() {
 
 fullscreenButton.addEventListener('click', async () => {
   await toggleFullscreen();
-  if (touchDevice) closeMobileMenu();
+  closeMobileMenu();
 });
 
 document.addEventListener('fullscreenchange', () => {
@@ -352,7 +353,7 @@ exportButton.addEventListener('click', async () => {
   } finally {
     exportButton.disabled = false;
     exportButton.textContent = originalLabel;
-    if (touchDevice) closeMobileMenu();
+    closeMobileMenu();
   }
 });
 
@@ -365,24 +366,82 @@ window.addEventListener('keydown', (event) => {
   if (mode === 'walk') setMode('orbit');
 });
 
-const ambientAudio = new Audio('/audio/song.mp3');
 ambientAudio.loop = true;
 ambientAudio.preload = 'auto';
 ambientAudio.volume = 0.55;
-let attemptedAudio = false;
+ambientAudio.muted = false;
+ambientAudio.setAttribute('playsinline', '');
+ambientAudio.setAttribute('webkit-playsinline', '');
 
-async function tryStartAudio() {
-  if (attemptedAudio) return;
-  attemptedAudio = true;
-  try {
-    await ambientAudio.play();
-  } catch {
-    // The app stays silent when the optional song is absent or playback is unavailable.
-  }
+let audioUnlocked = false;
+let lastAudioWarning = '';
+
+function reportAudioFailure(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message === lastAudioWarning) return;
+  lastAudioWarning = message;
+  console.warn(
+    'No se pudo iniciar la música. Comprueba que public/audio/song.mp3 exista y que el archivo sea un MP3 válido.',
+    error,
+  );
 }
 
-window.addEventListener('pointerdown', tryStartAudio, { once: true });
-window.addEventListener('keydown', tryStartAudio, { once: true });
+function tryStartAudio() {
+  if (!ambientAudio.paused && !ambientAudio.ended) {
+    audioUnlocked = true;
+    return;
+  }
+
+  ambientAudio.muted = false;
+  ambientAudio.volume = 0.55;
+
+  // Mobile Safari must receive play() directly inside a user-activation event.
+  // Keeping these listeners active also lets the track resume after an interruption.
+  if (ambientAudio.readyState === HTMLMediaElement.HAVE_NOTHING) {
+    ambientAudio.load();
+  }
+
+  const playback = ambientAudio.play();
+  if (!playback || typeof playback.then !== 'function') {
+    audioUnlocked = true;
+    return;
+  }
+
+  playback
+    .then(() => {
+      audioUnlocked = true;
+      lastAudioWarning = '';
+    })
+    .catch(reportAudioFailure);
+}
+
+// iOS versions differ on which gesture phase grants media activation, so cover both phases.
+ambientAudio.load();
+document.addEventListener('touchstart', tryStartAudio, { capture: true, passive: true });
+document.addEventListener('touchend', tryStartAudio, { capture: true, passive: true });
+document.addEventListener('pointerdown', tryStartAudio, { capture: true, passive: true });
+document.addEventListener('pointerup', tryStartAudio, { capture: true, passive: true });
+document.addEventListener('click', tryStartAudio, { capture: true, passive: true });
+document.addEventListener('keydown', tryStartAudio, { capture: true });
+
+ambientAudio.addEventListener('error', () => {
+  const mediaError = ambientAudio.error;
+  reportAudioFailure(
+    new Error(
+      mediaError
+        ? `Error de audio ${mediaError.code}`
+        : 'No se encontró una fuente de audio compatible.',
+    ),
+  );
+});
+
+function resumeUnlockedAudio() {
+  if (!audioUnlocked || document.visibilityState === 'hidden' || !ambientAudio.paused) return;
+  ambientAudio.play().catch(reportAudioFailure);
+}
+
+document.addEventListener('visibilitychange', resumeUnlockedAudio);
+window.addEventListener('pageshow', resumeUnlockedAudio);
 
 function bindInstantTouchAction(button, action) {
   button.addEventListener('pointerdown', (event) => {
