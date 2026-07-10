@@ -1,1 +1,1 @@
-Corrige el arranque del visor y restaura todos los controles móviles requeridos
+Mejora el menú móvil de opciones con una interfaz más clara y táctil

@@ -42,6 +42,8 @@ const fullscreenButton = requiredElement('fullscreenButton');
 const themeSelect = requiredElement('themeSelect');
 const toolbar = requiredElement('toolbar');
 const mobileMenuButton = requiredElement('mobileMenuButton');
+const mobileMenuClose = requiredElement('mobileMenuClose');
+const mobileMenuScrim = requiredElement('mobileMenuScrim');
 const walkHelp = requiredElement('walkHelp');
 const crosshair = requiredElement('crosshair');
 const interactionPrompt = requiredElement('interactionPrompt');
@@ -186,7 +188,16 @@ function setButtonState(button, active) {
 
 function closeMobileMenu() {
   toolbar.classList.remove('is-open');
+  mobileMenuScrim.classList.remove('is-visible');
+  mobileMenuScrim.setAttribute('aria-hidden', 'true');
   mobileMenuButton.setAttribute('aria-expanded', 'false');
+}
+
+function openMobileMenu() {
+  toolbar.classList.add('is-open');
+  mobileMenuScrim.classList.add('is-visible');
+  mobileMenuScrim.setAttribute('aria-hidden', 'false');
+  mobileMenuButton.setAttribute('aria-expanded', 'true');
 }
 
 function resetMobileInput() {
@@ -279,9 +290,15 @@ themeSelect.addEventListener('change', () => {
 });
 
 mobileMenuButton.addEventListener('click', () => {
-  const open = toolbar.classList.toggle('is-open');
-  mobileMenuButton.setAttribute('aria-expanded', String(open));
+  if (toolbar.classList.contains('is-open')) {
+    closeMobileMenu();
+  } else {
+    openMobileMenu();
+  }
 });
+
+mobileMenuClose.addEventListener('click', closeMobileMenu);
+mobileMenuScrim.addEventListener('click', closeMobileMenu);
 
 document.addEventListener('pointerdown', (event) => {
   if (!touchDevice || !toolbar.classList.contains('is-open')) return;
@@ -338,7 +355,12 @@ exportButton.addEventListener('click', async () => {
 });
 
 window.addEventListener('keydown', (event) => {
-  if (event.code === 'Escape' && mode === 'walk') setMode('orbit');
+  if (event.code !== 'Escape') return;
+  if (toolbar.classList.contains('is-open')) {
+    closeMobileMenu();
+    return;
+  }
+  if (mode === 'walk') setMode('orbit');
 });
 
 const ambientAudio = new Audio('/audio/song.mp3');
