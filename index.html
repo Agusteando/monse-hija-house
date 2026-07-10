@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f1ece3" />
+    <meta
+      name="description"
+      content="Recorrido 3D interactivo de una vivienda recreada desde su plano arquitectónico."
+    />
+    <title>Plano 3D · Vivienda</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar" aria-label="Controles de la vista 3D">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <strong>Casa Patio</strong>
+            <span>Plano 3D interactivo</span>
+          </div>
+        </div>
+
+        <nav class="toolbar" aria-label="Herramientas">
+          <button class="tool is-active" id="labelsButton" type="button" aria-pressed="true">
+            Etiquetas
+          </button>
+          <button class="tool is-active" id="wallsButton" type="button" aria-pressed="true">
+            Muros
+          </button>
+          <button class="tool" id="roofButton" type="button" aria-pressed="false">
+            Techo
+          </button>
+          <button class="tool is-active" id="orbitButton" type="button" aria-pressed="true">
+            Vista órbita
+          </button>
+          <label class="theme-picker" for="themeSelect">
+            <span>Paleta</span>
+            <select id="themeSelect"></select>
+          </label>
+          <button class="tool" id="exportButton" type="button">
+            Exportar OBJ
+          </button>
+          <button class="walk-button" id="walkButton" type="button">Caminar</button>
+        </nav>
+      </header>
+
+      <main id="viewport" aria-label="Modelo tridimensional de la vivienda"></main>
+
+      <aside class="orientation-card" aria-hidden="true">
+        <span class="north-arrow">N</span>
+        <span>Entrada</span>
+      </aside>
+
+      <aside class="scale-card" aria-label="Escala estimada del plano">
+        <strong>Escala estimada</strong>
+        <span>12.2 × 10.4 m · 127 m² brutos</span>
+        <small>≈112 m² útiles, sin contar muros y patio abierto</small>
+      </aside>
+
+      <section class="walk-help" id="walkHelp" aria-live="polite">
+        <div>
+          <strong>Modo caminar</strong>
+          <span>WASD o flechas · Mouse para mirar · E abre puertas · La escalera es transitable</span>
+        </div>
+        <button id="exitWalkButton" type="button">Salir</button>
+      </section>
+
+      <div class="interaction-prompt" id="interactionPrompt" aria-live="polite"></div>
+      <div class="crosshair" id="crosshair" aria-hidden="true"></div>
+
+      <div class="loading" id="loading" role="status">
+        <span></span>
+        Construyendo modelo…
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
