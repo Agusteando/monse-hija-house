@@ -19,9 +19,8 @@
         class="mobile-menu-scrim"
         id="mobileMenuScrim"
         type="button"
-        aria-label="Cerrar menú de opciones"
+        aria-label="Cerrar opciones"
         aria-hidden="true"
-        tabindex="-1"
       ></button>
 
       <header class="topbar" aria-label="Controles de la vista 3D">
@@ -33,35 +32,44 @@
           </div>
         </div>
 
-        <button
-          class="mobile-menu-button"
-          id="mobileMenuButton"
-          type="button"
-          aria-controls="toolbar"
-          aria-expanded="false"
-        >
-          <span class="mobile-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span>Opciones</span>
-        </button>
+        <div class="mobile-header-actions">
+          <button class="mobile-walk-quick" id="mobileWalkQuickButton" type="button">
+            <span aria-hidden="true">↗</span>
+            Caminar
+          </button>
+          <button
+            class="mobile-menu-button"
+            id="mobileMenuButton"
+            type="button"
+            aria-controls="toolbar"
+            aria-expanded="false"
+          >
+            <span class="mobile-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+            Opciones
+          </button>
+        </div>
 
         <nav class="toolbar" id="toolbar" aria-label="Herramientas">
           <div class="mobile-menu-heading">
             <div>
               <strong>Opciones</strong>
-              <span>Ajusta la vista, el ambiente y el modo de recorrido.</span>
+              <span>Configura la vista, el ambiente y el recorrido.</span>
             </div>
-            <button
-              class="mobile-menu-close"
-              id="mobileMenuClose"
-              type="button"
-              aria-label="Cerrar menú de opciones"
-            >
+            <button class="mobile-menu-close" id="mobileMenuClose" type="button" aria-label="Cerrar opciones">
               ×
             </button>
           </div>
 
-          <section class="toolbar-section toolbar-section-view" aria-labelledby="viewOptionsTitle">
-            <span class="toolbar-section-title" id="viewOptionsTitle">Vista</span>
+          <button class="walk-button mobile-primary-walk" id="walkButton" type="button">
+            <span class="walk-button-icon" aria-hidden="true">↗</span>
+            <span>
+              <strong>Caminar</strong>
+              <small>Entra al departamento y recórrelo con controles táctiles.</small>
+            </span>
+          </button>
+
+          <section class="toolbar-section toolbar-section-view" aria-labelledby="viewSectionTitle">
+            <span class="toolbar-section-title" id="viewSectionTitle">Vista</span>
             <div class="toolbar-option-grid">
               <button
                 class="tool is-active"
@@ -95,19 +103,19 @@
                 id="orbitButton"
                 type="button"
                 aria-pressed="true"
-                data-icon="↻"
+                data-icon="◎"
               >
                 Vista órbita
               </button>
             </div>
           </section>
 
-          <section class="toolbar-section toolbar-section-theme" aria-labelledby="themeOptionsTitle">
-            <span class="toolbar-section-title" id="themeOptionsTitle">Ambiente</span>
+          <section class="toolbar-section toolbar-section-theme" aria-labelledby="themeSectionTitle">
+            <span class="toolbar-section-title" id="themeSectionTitle">Ambiente</span>
             <label class="theme-picker" for="themeSelect">
               <span class="theme-picker-copy">
                 <strong>Paleta de materiales</strong>
-                <small>Cambia tonos, maderas, textiles y acabados del modelo.</small>
+                <small>Cambia tonos, maderas, textiles y acabados.</small>
               </span>
               <span class="theme-select-wrap">
                 <select id="themeSelect" aria-label="Paleta de materiales"></select>
@@ -115,8 +123,8 @@
             </label>
           </section>
 
-          <section class="toolbar-section toolbar-section-actions" aria-labelledby="actionOptionsTitle">
-            <span class="toolbar-section-title" id="actionOptionsTitle">Acciones</span>
+          <section class="toolbar-section toolbar-section-actions" aria-labelledby="actionsSectionTitle">
+            <span class="toolbar-section-title" id="actionsSectionTitle">Acciones</span>
             <div class="toolbar-action-grid">
               <button
                 class="tool utility-tool"
@@ -126,24 +134,11 @@
               >
                 Pantalla completa
               </button>
-              <button
-                class="tool utility-tool"
-                id="exportButton"
-                type="button"
-                data-icon="⇩"
-              >
+              <button class="tool utility-tool" id="exportButton" type="button" data-icon="↓">
                 Exportar OBJ
               </button>
             </div>
           </section>
-
-          <button class="walk-button" id="walkButton" type="button">
-            <span class="walk-button-icon" aria-hidden="true">◉</span>
-            <span>
-              <strong>Caminar</strong>
-              <small>Explora la casa en primera persona</small>
-            </span>
-          </button>
         </nav>
       </header>
 

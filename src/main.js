@@ -42,6 +42,7 @@ const fullscreenButton = requiredElement('fullscreenButton');
 const themeSelect = requiredElement('themeSelect');
 const toolbar = requiredElement('toolbar');
 const mobileMenuButton = requiredElement('mobileMenuButton');
+const mobileWalkQuickButton = requiredElement('mobileWalkQuickButton');
 const mobileMenuClose = requiredElement('mobileMenuClose');
 const mobileMenuScrim = requiredElement('mobileMenuScrim');
 const walkHelp = requiredElement('walkHelp');
@@ -275,6 +276,7 @@ orbitButton.addEventListener('click', () => {
   if (touchDevice) closeMobileMenu();
 });
 walkButton.addEventListener('click', () => setMode('walk'));
+mobileWalkQuickButton.addEventListener('click', () => setMode('walk'));
 exitWalkButton.addEventListener('click', () => setMode('orbit'));
 mobileExitButton.addEventListener('pointerdown', (event) => {
   if (event.pointerType === 'mouse') return;

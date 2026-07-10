@@ -1,1 +1,1 @@
-Corrige la estructura del menú móvil y restaura todos sus controles requeridos
+Hace visible y accesible el modo caminar en dispositivos móviles
