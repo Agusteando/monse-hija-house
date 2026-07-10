@@ -1,1 +1,1 @@
-Restaura y mejora la televisión de la sala con consola y detalles realistas
+Corrige la estructura del menú móvil y restaura todos sus controles requeridos
