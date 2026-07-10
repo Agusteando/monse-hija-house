@@ -989,3 +989,21 @@ body.is-touch .orientation-card {
     animation-iteration-count: 1 !important;
   }
 }
+
+.loading.has-error {
+  gap: 8px;
+  padding: 24px;
+  color: #5c2f29;
+  text-align: center;
+}
+
+.loading.has-error strong,
+.loading.has-error small {
+  display: block;
+  max-width: 560px;
+}
+
+.loading.has-error small {
+  color: #755a55;
+  line-height: 1.5;
+}

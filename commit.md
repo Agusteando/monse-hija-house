@@ -1,1 +1,1 @@
-Elimina el lockfile y adapta la instalación para Vercel
+Corrige el arranque del visor y restaura todos los controles móviles requeridos

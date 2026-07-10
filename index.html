@@ -2,7 +2,10 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
     <meta name="theme-color" content="#f1ece3" />
     <meta
       name="description"
@@ -21,7 +24,17 @@
           </div>
         </div>
 
-        <nav class="toolbar" aria-label="Herramientas">
+        <button
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          type="button"
+          aria-controls="toolbar"
+          aria-expanded="false"
+        >
+          Opciones
+        </button>
+
+        <nav class="toolbar" id="toolbar" aria-label="Herramientas">
           <button class="tool is-active" id="labelsButton" type="button" aria-pressed="true">
             Etiquetas
           </button>
@@ -38,6 +51,9 @@
             <span>Paleta</span>
             <select id="themeSelect"></select>
           </label>
+          <button class="tool" id="fullscreenButton" type="button">
+            Pantalla completa
+          </button>
           <button class="tool" id="exportButton" type="button">
             Exportar OBJ
           </button>
@@ -61,7 +77,12 @@
       <section class="walk-help" id="walkHelp" aria-live="polite">
         <div>
           <strong>Modo caminar</strong>
-          <span>WASD o flechas · Mouse para mirar · E abre puertas · La escalera es transitable</span>
+          <span class="desktop-help">
+            WASD o flechas · Mouse para mirar · E abre puertas · Espacio para saltar
+          </span>
+          <span class="mobile-help">
+            Joystick para moverte · Arrastra a la derecha para mirar · Usa los botones de acción
+          </span>
         </div>
         <button id="exitWalkButton" type="button">Salir</button>
       </section>
@@ -69,9 +90,39 @@
       <div class="interaction-prompt" id="interactionPrompt" aria-live="polite"></div>
       <div class="crosshair" id="crosshair" aria-hidden="true"></div>
 
+      <section class="mobile-controls" id="mobileControls" aria-hidden="true">
+        <div class="look-pad" id="lookPad" aria-label="Área táctil para mirar">
+          <span>Arrastra para mirar</span>
+        </div>
+
+        <div class="joystick" id="joystick" aria-label="Joystick de movimiento">
+          <div class="joystick-ring">
+            <div class="joystick-knob" id="joystickKnob"></div>
+          </div>
+          <span>Mover</span>
+        </div>
+
+        <div class="mobile-actions" aria-label="Acciones del modo caminar">
+          <button class="mobile-action secondary" id="mobileExitButton" type="button">
+            Salir
+          </button>
+          <button
+            class="mobile-action is-disabled"
+            id="mobileInteractButton"
+            type="button"
+            aria-disabled="true"
+          >
+            Usar
+          </button>
+          <button class="mobile-action" id="mobileJumpButton" type="button">
+            Saltar
+          </button>
+        </div>
+      </section>
+
       <div class="loading" id="loading" role="status">
         <span></span>
-        Construyendo modelo…
+        <strong>Construyendo modelo…</strong>
       </div>
     </div>
 

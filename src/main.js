@@ -5,29 +5,53 @@ import './style.css';
 import { buildPlan } from './plan.js';
 import { FirstPersonController } from './firstPerson.js';
 
-const viewport = document.querySelector('#viewport');
-const loading = document.querySelector('#loading');
-const labelsButton = document.querySelector('#labelsButton');
-const wallsButton = document.querySelector('#wallsButton');
-const roofButton = document.querySelector('#roofButton');
-const orbitButton = document.querySelector('#orbitButton');
-const walkButton = document.querySelector('#walkButton');
-const exitWalkButton = document.querySelector('#exitWalkButton');
-const exportButton = document.querySelector('#exportButton');
-const fullscreenButton = document.querySelector('#fullscreenButton');
-const themeSelect = document.querySelector('#themeSelect');
-const toolbar = document.querySelector('#toolbar');
-const mobileMenuButton = document.querySelector('#mobileMenuButton');
-const walkHelp = document.querySelector('#walkHelp');
-const crosshair = document.querySelector('#crosshair');
-const interactionPrompt = document.querySelector('#interactionPrompt');
-const mobileControls = document.querySelector('#mobileControls');
-const joystick = document.querySelector('#joystick');
-const joystickKnob = document.querySelector('#joystickKnob');
-const lookPad = document.querySelector('#lookPad');
-const mobileInteractButton = document.querySelector('#mobileInteractButton');
-const mobileJumpButton = document.querySelector('#mobileJumpButton');
-const mobileExitButton = document.querySelector('#mobileExitButton');
+const bootLoading = document.getElementById('loading');
+
+function showBootFailure(message) {
+  if (!bootLoading) return;
+  bootLoading.classList.remove('is-hidden');
+  bootLoading.classList.add('has-error');
+  bootLoading.innerHTML = `<strong>No se pudo iniciar el modelo</strong><small>${message}</small>`;
+}
+
+window.addEventListener('error', (event) => {
+  showBootFailure(event.error?.message || event.message || 'Error desconocido');
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
+  showBootFailure(reason);
+});
+
+function requiredElement(id) {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Falta el elemento requerido #${id} en index.html`);
+  return element;
+}
+
+const viewport = requiredElement('viewport');
+const loading = requiredElement('loading');
+const labelsButton = requiredElement('labelsButton');
+const wallsButton = requiredElement('wallsButton');
+const roofButton = requiredElement('roofButton');
+const orbitButton = requiredElement('orbitButton');
+const walkButton = requiredElement('walkButton');
+const exitWalkButton = requiredElement('exitWalkButton');
+const exportButton = requiredElement('exportButton');
+const fullscreenButton = requiredElement('fullscreenButton');
+const themeSelect = requiredElement('themeSelect');
+const toolbar = requiredElement('toolbar');
+const mobileMenuButton = requiredElement('mobileMenuButton');
+const walkHelp = requiredElement('walkHelp');
+const crosshair = requiredElement('crosshair');
+const interactionPrompt = requiredElement('interactionPrompt');
+const mobileControls = requiredElement('mobileControls');
+const joystick = requiredElement('joystick');
+const joystickKnob = requiredElement('joystickKnob');
+const lookPad = requiredElement('lookPad');
+const mobileInteractButton = requiredElement('mobileInteractButton');
+const mobileJumpButton = requiredElement('mobileJumpButton');
+const mobileExitButton = requiredElement('mobileExitButton');
 
 const touchDevice =
   window.matchMedia('(pointer: coarse)').matches ||
