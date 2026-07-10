@@ -20,6 +20,7 @@ export class FirstPersonController {
     getGroundHeight = () => 0,
     onLockChange,
     onInteract,
+    pointerLockEnabled = true,
   }) {
     this.camera = camera;
     this.domElement = domElement;
@@ -29,11 +30,13 @@ export class FirstPersonController {
     this.getGroundHeight = getGroundHeight;
     this.onLockChange = onLockChange;
     this.onInteract = onInteract;
+    this.pointerLockEnabled = pointerLockEnabled;
 
     this.enabled = false;
     this.locked = false;
     this.velocity = new THREE.Vector3();
     this.moveInput = new THREE.Vector2();
+    this.externalMoveInput = new THREE.Vector2();
     this.yaw = Math.PI - 0.18;
     this.pitch = -0.05;
     this.eyeHeight = 1.68;
@@ -61,42 +64,78 @@ export class FirstPersonController {
     this.pitch = -0.03;
     this.velocity.set(0, 0, 0);
     this.keys.clear();
+    this.externalMoveInput.set(0, 0);
     this.canJump = true;
     this.updateCameraRotation();
-    this.requestLock();
+    if (this.pointerLockEnabled) this.requestLock();
   }
 
   stop() {
     this.enabled = false;
     this.velocity.set(0, 0, 0);
     this.keys.clear();
+    this.externalMoveInput.set(0, 0);
     if (document.pointerLockElement === this.domElement) {
       document.exitPointerLock();
     }
   }
 
   requestLock() {
-    if (this.enabled && document.pointerLockElement !== this.domElement) {
+    if (
+      this.pointerLockEnabled &&
+      this.enabled &&
+      document.pointerLockElement !== this.domElement
+    ) {
       this.domElement.requestPointerLock?.();
     }
   }
 
   onCanvasClick() {
-    if (this.enabled && !this.locked) this.requestLock();
+    if (this.pointerLockEnabled && this.enabled && !this.locked) this.requestLock();
   }
 
   onPointerLockChange() {
-    this.locked = document.pointerLockElement === this.domElement;
+    this.locked = this.pointerLockEnabled && document.pointerLockElement === this.domElement;
     this.onLockChange?.(this.locked);
+  }
+
+  applyLookDelta(deltaX, deltaY, sensitivity = 0.0021) {
+    if (!this.enabled) return;
+    this.yaw -= deltaX * sensitivity;
+    this.pitch -= deltaY * sensitivity;
+    this.pitch = THREE.MathUtils.clamp(
+      this.pitch,
+      -Math.PI / 2 + 0.08,
+      Math.PI / 2 - 0.08,
+    );
+    this.updateCameraRotation();
   }
 
   onMouseMove(event) {
     if (!this.enabled || !this.locked) return;
-    const sensitivity = 0.0021;
-    this.yaw -= event.movementX * sensitivity;
-    this.pitch -= event.movementY * sensitivity;
-    this.pitch = THREE.MathUtils.clamp(this.pitch, -Math.PI / 2 + 0.08, Math.PI / 2 - 0.08);
-    this.updateCameraRotation();
+    this.applyLookDelta(event.movementX, event.movementY, 0.0021);
+  }
+
+  setMoveInput(strafe, forward) {
+    this.externalMoveInput.set(
+      THREE.MathUtils.clamp(strafe, -1, 1),
+      THREE.MathUtils.clamp(forward, -1, 1),
+    );
+    if (this.externalMoveInput.lengthSq() > 1) this.externalMoveInput.normalize();
+  }
+
+  clearMoveInput() {
+    this.externalMoveInput.set(0, 0);
+  }
+
+  jump() {
+    if (!this.enabled || !this.canJump) return;
+    this.velocity.y = 4.8;
+    this.canJump = false;
+  }
+
+  interact() {
+    if (this.enabled) this.onInteract?.();
   }
 
   onKeyDown(event) {
@@ -115,11 +154,8 @@ export class FirstPersonController {
     ];
     if (movementKeys.includes(event.code)) event.preventDefault();
     this.keys.add(event.code);
-    if (event.code === 'Space' && this.canJump) {
-      this.velocity.y = 4.8;
-      this.canJump = false;
-    }
-    if (event.code === 'KeyE' && !event.repeat) this.onInteract?.();
+    if (event.code === 'Space' && !event.repeat) this.jump();
+    if (event.code === 'KeyE' && !event.repeat) this.interact();
     if (event.code === 'Escape') this.stop();
   }
 
@@ -159,7 +195,6 @@ export class FirstPersonController {
     const nextGround = this.getGroundHeight(nextX, nextZ);
     const stepUp = nextGround - Math.max(currentFeet, currentGround);
 
-    // Normal risers are followed through the smooth navigation surface, but large ledges are blocked.
     if (stepUp > 0.34 || this.isBlocked(nextX, nextZ, Math.max(currentFeet, nextGround))) return;
 
     this.camera.position[axis] += amount;
@@ -177,19 +212,24 @@ export class FirstPersonController {
   update(delta) {
     if (!this.enabled) return;
 
-    const forwardAmount =
+    const keyboardForward =
       (this.keys.has('KeyW') || this.keys.has('ArrowUp') ? 1 : 0) -
       (this.keys.has('KeyS') || this.keys.has('ArrowDown') ? 1 : 0);
-    const strafeAmount =
+    const keyboardStrafe =
       (this.keys.has('KeyD') || this.keys.has('ArrowRight') ? 1 : 0) -
       (this.keys.has('KeyA') || this.keys.has('ArrowLeft') ? 1 : 0);
 
-    this.moveInput.set(strafeAmount, forwardAmount);
+    this.moveInput.set(
+      THREE.MathUtils.clamp(keyboardStrafe + this.externalMoveInput.x, -1, 1),
+      THREE.MathUtils.clamp(keyboardForward + this.externalMoveInput.y, -1, 1),
+    );
     if (this.moveInput.lengthSq() > 1) this.moveInput.normalize();
 
     const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, this.yaw);
     const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(UP, this.yaw);
-    const direction = forward.multiplyScalar(this.moveInput.y).add(right.multiplyScalar(this.moveInput.x));
+    const direction = forward
+      .multiplyScalar(this.moveInput.y)
+      .add(right.multiplyScalar(this.moveInput.x));
     if (direction.lengthSq() > 0) direction.normalize();
 
     const runMultiplier = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') ? 1.45 : 1;

@@ -1,1 +1,1 @@
-Corrige el acceso privado y añade refrigerador interactivo con alimentos
+Optimiza la experiencia móvil con controles táctiles y diseño adaptable

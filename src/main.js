@@ -15,13 +15,29 @@ const orbitButton = document.querySelector('#orbitButton');
 const walkButton = document.querySelector('#walkButton');
 const exitWalkButton = document.querySelector('#exitWalkButton');
 const exportButton = document.querySelector('#exportButton');
+const fullscreenButton = document.querySelector('#fullscreenButton');
 const themeSelect = document.querySelector('#themeSelect');
+const toolbar = document.querySelector('#toolbar');
+const mobileMenuButton = document.querySelector('#mobileMenuButton');
 const walkHelp = document.querySelector('#walkHelp');
 const crosshair = document.querySelector('#crosshair');
 const interactionPrompt = document.querySelector('#interactionPrompt');
+const mobileControls = document.querySelector('#mobileControls');
+const joystick = document.querySelector('#joystick');
+const joystickKnob = document.querySelector('#joystickKnob');
+const lookPad = document.querySelector('#lookPad');
+const mobileInteractButton = document.querySelector('#mobileInteractButton');
+const mobileJumpButton = document.querySelector('#mobileJumpButton');
+const mobileExitButton = document.querySelector('#mobileExitButton');
+
+const touchDevice =
+  window.matchMedia('(pointer: coarse)').matches ||
+  navigator.maxTouchPoints > 0 ||
+  'ontouchstart' in window;
+document.body.classList.toggle('is-touch', touchDevice);
 
 const ORBIT_FOV = 48;
-const WALK_FOV = 68;
+const WALK_FOV = touchDevice ? 72 : 68;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xece6dc);
@@ -34,7 +50,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
   powerPreference: 'high-performance',
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, touchDevice ? 1.5 : 2));
 renderer.setSize(viewport.clientWidth, viewport.clientHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -42,6 +58,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 renderer.domElement.tabIndex = 0;
+renderer.domElement.setAttribute('aria-label', 'Vista 3D interactiva');
 viewport.appendChild(renderer.domElement);
 
 const labelRenderer = new CSS2DRenderer();
@@ -59,6 +76,8 @@ orbitControls.maxDistance = 34;
 orbitControls.minPolarAngle = THREE.MathUtils.degToRad(28);
 orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(77);
 orbitControls.target.set(6.1, 0.35, 5.2);
+orbitControls.touches.ONE = THREE.TOUCH.ROTATE;
+orbitControls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
 orbitControls.update();
 
 const hemisphere = new THREE.HemisphereLight(0xfffaf0, 0x6d665f, 2.25);
@@ -67,7 +86,7 @@ scene.add(hemisphere);
 const sun = new THREE.DirectionalLight(0xfff5e4, 3.15);
 sun.position.set(-8, 18, -6);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(touchDevice ? 1024 : 2048, touchDevice ? 1024 : 2048);
 sun.shadow.camera.left = -17;
 sun.shadow.camera.right = 17;
 sun.shadow.camera.top = 18;
@@ -115,6 +134,7 @@ function setEnvironment(theme) {
 setEnvironment(plan.applyTheme('arena'));
 
 let mode = 'orbit';
+let mobileHelpTimeout = 0;
 const orbitPose = {
   position: camera.position.clone(),
   target: orbitControls.target.clone(),
@@ -127,8 +147,9 @@ const firstPerson = new FirstPersonController({
   bounds: plan.bounds,
   startPosition: plan.entrance,
   getGroundHeight: plan.getGroundHeight,
+  pointerLockEnabled: !touchDevice,
   onLockChange(locked) {
-    crosshair.classList.toggle('is-visible', locked && mode === 'walk');
+    if (!touchDevice) crosshair.classList.toggle('is-visible', locked && mode === 'walk');
   },
   onInteract() {
     plan.interactNearest(camera);
@@ -140,9 +161,22 @@ function setButtonState(button, active) {
   button.setAttribute('aria-pressed', String(active));
 }
 
+function closeMobileMenu() {
+  toolbar.classList.remove('is-open');
+  mobileMenuButton.setAttribute('aria-expanded', 'false');
+}
+
+function resetMobileInput() {
+  firstPerson.clearMoveInput();
+  joystickKnob.style.transform = 'translate3d(0, 0, 0)';
+  joystick.classList.remove('is-active');
+  lookPad.classList.remove('is-active');
+}
+
 function setMode(nextMode) {
   if (nextMode === mode) return;
   mode = nextMode;
+  clearTimeout(mobileHelpTimeout);
 
   if (mode === 'walk') {
     camera.fov = WALK_FOV;
@@ -155,12 +189,20 @@ function setMode(nextMode) {
     orbitPose.target.copy(orbitControls.target);
     orbitControls.enabled = false;
     setButtonState(orbitButton, false);
+    closeMobileMenu();
     document.body.classList.add('walking');
+    mobileControls.setAttribute('aria-hidden', touchDevice ? 'false' : 'true');
     walkHelp.classList.add('is-visible');
-    crosshair.classList.add('is-visible');
+    if (touchDevice) {
+      crosshair.classList.add('is-visible');
+      mobileHelpTimeout = window.setTimeout(() => {
+        walkHelp.classList.remove('is-visible');
+      }, 4300);
+    }
     firstPerson.start();
   } else {
     firstPerson.stop();
+    resetMobileInput();
     camera.fov = ORBIT_FOV;
     camera.updateProjectionMatrix();
     camera.position.copy(orbitPose.position);
@@ -170,6 +212,7 @@ function setMode(nextMode) {
     orbitControls.update();
     setButtonState(orbitButton, true);
     document.body.classList.remove('walking');
+    mobileControls.setAttribute('aria-hidden', 'true');
     walkHelp.classList.remove('is-visible');
     crosshair.classList.remove('is-visible');
   }
@@ -178,25 +221,69 @@ function setMode(nextMode) {
 labelsButton.addEventListener('click', () => {
   plan.labelsGroup.visible = !plan.labelsGroup.visible;
   setButtonState(labelsButton, plan.labelsGroup.visible);
+  if (touchDevice) closeMobileMenu();
 });
 
 wallsButton.addEventListener('click', () => {
   plan.wallGroup.visible = !plan.wallGroup.visible;
   setButtonState(wallsButton, plan.wallGroup.visible);
+  if (touchDevice) closeMobileMenu();
 });
 
 roofButton.addEventListener('click', () => {
   plan.roofGroup.visible = !plan.roofGroup.visible;
   setButtonState(roofButton, plan.roofGroup.visible);
+  if (touchDevice) closeMobileMenu();
 });
 
-orbitButton.addEventListener('click', () => setMode('orbit'));
+orbitButton.addEventListener('click', () => {
+  setMode('orbit');
+  if (touchDevice) closeMobileMenu();
+});
 walkButton.addEventListener('click', () => setMode('walk'));
 exitWalkButton.addEventListener('click', () => setMode('orbit'));
+mobileExitButton.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'mouse') return;
+  event.preventDefault();
+  setMode('orbit');
+});
+mobileExitButton.addEventListener('click', () => setMode('orbit'));
 
 themeSelect.addEventListener('change', () => {
   const theme = plan.applyTheme(themeSelect.value);
   setEnvironment(theme);
+  if (touchDevice) closeMobileMenu();
+});
+
+mobileMenuButton.addEventListener('click', () => {
+  const open = toolbar.classList.toggle('is-open');
+  mobileMenuButton.setAttribute('aria-expanded', String(open));
+});
+
+document.addEventListener('pointerdown', (event) => {
+  if (!touchDevice || !toolbar.classList.contains('is-open')) return;
+  if (!event.target.closest('.topbar')) closeMobileMenu();
+});
+
+async function toggleFullscreen() {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+    } else {
+      await document.exitFullscreen?.();
+    }
+  } catch {
+    // Some mobile browsers intentionally do not expose document fullscreen.
+  }
+}
+
+fullscreenButton.addEventListener('click', async () => {
+  await toggleFullscreen();
+  if (touchDevice) closeMobileMenu();
+});
+
+document.addEventListener('fullscreenchange', () => {
+  fullscreenButton.textContent = document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa';
 });
 
 function downloadFile(name, contents, mimeType = 'text/plain;charset=utf-8') {
@@ -215,12 +302,11 @@ exportButton.addEventListener('click', () => {
   const exporter = new OBJExporter();
   const obj = exporter.parse(plan.root);
   downloadFile('casa-patio-roblox.obj', obj);
+  if (touchDevice) closeMobileMenu();
 });
 
 window.addEventListener('keydown', (event) => {
-  if (event.code === 'Escape' && mode === 'walk') {
-    setMode('orbit');
-  }
+  if (event.code === 'Escape' && mode === 'walk') setMode('orbit');
 });
 
 const ambientAudio = new Audio('/audio/song.mp3');
@@ -235,24 +321,134 @@ async function tryStartAudio() {
   try {
     await ambientAudio.play();
   } catch {
-    // If the user has not placed the file yet or playback is blocked, keep the app silent.
+    // The app stays silent when the optional song is absent or playback is unavailable.
   }
 }
 
 window.addEventListener('pointerdown', tryStartAudio, { once: true });
 window.addEventListener('keydown', tryStartAudio, { once: true });
 
+function bindInstantTouchAction(button, action) {
+  button.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse') return;
+    event.preventDefault();
+    action();
+    button.classList.add('is-pressed');
+    button.setPointerCapture?.(event.pointerId);
+  });
+  const release = () => button.classList.remove('is-pressed');
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  button.addEventListener('click', (event) => {
+    if (event.detail === 0 || event.pointerType === 'mouse') action();
+  });
+}
+
+bindInstantTouchAction(mobileJumpButton, () => firstPerson.jump());
+bindInstantTouchAction(mobileInteractButton, () => firstPerson.interact());
+
+let joystickPointerId = null;
+function updateJoystick(event) {
+  const ring = joystick.querySelector('.joystick-ring');
+  const rect = ring.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const maxRadius = rect.width * 0.31;
+  let dx = event.clientX - centerX;
+  let dy = event.clientY - centerY;
+  const distance = Math.hypot(dx, dy);
+  if (distance > maxRadius) {
+    dx = (dx / distance) * maxRadius;
+    dy = (dy / distance) * maxRadius;
+  }
+  joystickKnob.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+  firstPerson.setMoveInput(dx / maxRadius, -dy / maxRadius);
+}
+
+joystick.addEventListener('pointerdown', (event) => {
+  if (mode !== 'walk' || joystickPointerId !== null) return;
+  event.preventDefault();
+  joystickPointerId = event.pointerId;
+  joystick.setPointerCapture?.(event.pointerId);
+  joystick.classList.add('is-active');
+  updateJoystick(event);
+});
+
+joystick.addEventListener('pointermove', (event) => {
+  if (event.pointerId !== joystickPointerId) return;
+  event.preventDefault();
+  updateJoystick(event);
+});
+
+function releaseJoystick(event) {
+  if (event.pointerId !== joystickPointerId) return;
+  joystickPointerId = null;
+  firstPerson.clearMoveInput();
+  joystickKnob.style.transform = 'translate3d(0, 0, 0)';
+  joystick.classList.remove('is-active');
+}
+
+joystick.addEventListener('pointerup', releaseJoystick);
+joystick.addEventListener('pointercancel', releaseJoystick);
+joystick.addEventListener('lostpointercapture', releaseJoystick);
+
+let lookPointerId = null;
+let previousLookX = 0;
+let previousLookY = 0;
+
+lookPad.addEventListener('pointerdown', (event) => {
+  if (mode !== 'walk' || lookPointerId !== null) return;
+  event.preventDefault();
+  lookPointerId = event.pointerId;
+  previousLookX = event.clientX;
+  previousLookY = event.clientY;
+  lookPad.setPointerCapture?.(event.pointerId);
+  lookPad.classList.add('is-active');
+});
+
+lookPad.addEventListener('pointermove', (event) => {
+  if (event.pointerId !== lookPointerId) return;
+  event.preventDefault();
+  const deltaX = event.clientX - previousLookX;
+  const deltaY = event.clientY - previousLookY;
+  previousLookX = event.clientX;
+  previousLookY = event.clientY;
+  firstPerson.applyLookDelta(deltaX, deltaY, 0.0042);
+});
+
+function releaseLook(event) {
+  if (event.pointerId !== lookPointerId) return;
+  lookPointerId = null;
+  lookPad.classList.remove('is-active');
+}
+
+lookPad.addEventListener('pointerup', releaseLook);
+lookPad.addEventListener('pointercancel', releaseLook);
+lookPad.addEventListener('lostpointercapture', releaseLook);
+
+mobileControls.addEventListener('contextmenu', (event) => event.preventDefault());
+document.addEventListener(
+  'touchmove',
+  (event) => {
+    if (mode === 'walk') event.preventDefault();
+  },
+  { passive: false },
+);
+
 function resize() {
-  const width = viewport.clientWidth;
-  const height = viewport.clientHeight;
+  const width = Math.max(1, viewport.clientWidth);
+  const height = Math.max(1, viewport.clientHeight);
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, touchDevice ? 1.5 : 2));
   renderer.setSize(width, height, false);
   labelRenderer.setSize(width, height);
 }
 
 const resizeObserver = new ResizeObserver(resize);
 resizeObserver.observe(viewport);
+window.visualViewport?.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => window.setTimeout(resize, 120));
 resize();
 
 const clock = new THREE.Clock();
@@ -268,12 +464,19 @@ function animate() {
     firstPerson.update(delta);
     const candidate = plan.getNearestInteractable(camera);
     if (candidate) {
-      interactionPrompt.textContent = candidate.interactable.isOpen
-        ? `E · Cerrar ${candidate.interactable.label}`
-        : `E · Abrir ${candidate.interactable.label}`;
+      const verb = candidate.interactable.isOpen ? 'Cerrar' : 'Abrir';
+      interactionPrompt.textContent = touchDevice
+        ? `Toca Usar · ${verb} ${candidate.interactable.label}`
+        : `E · ${verb} ${candidate.interactable.label}`;
       interactionPrompt.classList.add('is-visible');
+      mobileInteractButton.textContent = verb;
+      mobileInteractButton.classList.remove('is-disabled');
+      mobileInteractButton.setAttribute('aria-disabled', 'false');
     } else {
       interactionPrompt.classList.remove('is-visible');
+      mobileInteractButton.textContent = 'Usar';
+      mobileInteractButton.classList.add('is-disabled');
+      mobileInteractButton.setAttribute('aria-disabled', 'true');
     }
   } else {
     interactionPrompt.classList.remove('is-visible');
