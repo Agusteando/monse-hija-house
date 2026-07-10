@@ -1,1 +1,1 @@
-Optimiza la experiencia móvil con controles táctiles y diseño adaptable
+Elimina el lockfile y adapta la instalación para Vercel

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import './style.css';
 import { buildPlan } from './plan.js';
@@ -298,11 +297,20 @@ function downloadFile(name, contents, mimeType = 'text/plain;charset=utf-8') {
   URL.revokeObjectURL(url);
 }
 
-exportButton.addEventListener('click', () => {
-  const exporter = new OBJExporter();
-  const obj = exporter.parse(plan.root);
-  downloadFile('casa-patio-roblox.obj', obj);
-  if (touchDevice) closeMobileMenu();
+exportButton.addEventListener('click', async () => {
+  const originalLabel = exportButton.textContent;
+  exportButton.disabled = true;
+  exportButton.textContent = 'Preparando OBJ…';
+  try {
+    const { OBJExporter } = await import('three/addons/exporters/OBJExporter.js');
+    const exporter = new OBJExporter();
+    const obj = exporter.parse(plan.root);
+    downloadFile('casa-patio-roblox.obj', obj);
+  } finally {
+    exportButton.disabled = false;
+    exportButton.textContent = originalLabel;
+    if (touchDevice) closeMobileMenu();
+  }
 });
 
 window.addEventListener('keydown', (event) => {

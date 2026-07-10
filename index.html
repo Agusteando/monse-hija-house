@@ -2,14 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f1ece3" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta
       name="description"
       content="Recorrido 3D interactivo de una vivienda recreada desde su plano arquitectónico."
@@ -27,17 +21,7 @@
           </div>
         </div>
 
-        <button
-          class="mobile-menu-button"
-          id="mobileMenuButton"
-          type="button"
-          aria-expanded="false"
-          aria-controls="toolbar"
-        >
-          Opciones
-        </button>
-
-        <nav class="toolbar" id="toolbar" aria-label="Herramientas">
+        <nav class="toolbar" aria-label="Herramientas">
           <button class="tool is-active" id="labelsButton" type="button" aria-pressed="true">
             Etiquetas
           </button>
@@ -54,9 +38,6 @@
             <span>Paleta</span>
             <select id="themeSelect"></select>
           </label>
-          <button class="tool" id="fullscreenButton" type="button">
-            Pantalla completa
-          </button>
           <button class="tool" id="exportButton" type="button">
             Exportar OBJ
           </button>
@@ -80,29 +61,9 @@
       <section class="walk-help" id="walkHelp" aria-live="polite">
         <div>
           <strong>Modo caminar</strong>
-          <span class="desktop-help">WASD o flechas · Mouse para mirar · E abre puertas</span>
-          <span class="mobile-help">Joystick para caminar · Arrastra a la derecha para mirar</span>
+          <span>WASD o flechas · Mouse para mirar · E abre puertas · La escalera es transitable</span>
         </div>
         <button id="exitWalkButton" type="button">Salir</button>
-      </section>
-
-      <section class="mobile-controls" id="mobileControls" aria-label="Controles táctiles">
-        <div class="look-pad" id="lookPad" aria-label="Arrastra para mirar">
-          <span>Arrastra para mirar</span>
-        </div>
-
-        <div class="joystick" id="joystick" aria-label="Control de movimiento">
-          <div class="joystick-ring">
-            <div class="joystick-knob" id="joystickKnob"></div>
-          </div>
-          <span>Caminar</span>
-        </div>
-
-        <div class="mobile-actions">
-          <button class="mobile-action secondary" id="mobileExitButton" type="button">Salir</button>
-          <button class="mobile-action" id="mobileInteractButton" type="button">Usar</button>
-          <button class="mobile-action" id="mobileJumpButton" type="button">Saltar</button>
-        </div>
       </section>
 
       <div class="interaction-prompt" id="interactionPrompt" aria-live="polite"></div>
