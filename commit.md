@@ -1,1 +1,1 @@
-Exporta el modelo en GLB con materiales y jerarquía para Roblox
+Corrige la exportación de materiales y texturas para Roblox
