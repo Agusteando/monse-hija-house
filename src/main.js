@@ -329,8 +329,7 @@ document.addEventListener('fullscreenchange', () => {
   fullscreenButton.textContent = document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa';
 });
 
-function downloadFile(name, contents, mimeType = 'text/plain;charset=utf-8') {
-  const blob = new Blob([contents], { type: mimeType });
+function downloadBlob(name, blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -341,15 +340,82 @@ function downloadFile(name, contents, mimeType = 'text/plain;charset=utf-8') {
   URL.revokeObjectURL(url);
 }
 
+function sanitizeExportName(value, fallback) {
+  const normalized = String(value || fallback)
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized || fallback;
+}
+
+function createRobloxExportRoot(sourceRoot) {
+  const exportRoot = sourceRoot.clone(true);
+  exportRoot.name = 'casa-patio';
+
+  // CSS room labels are interface elements, not 3D geometry.
+  exportRoot.getObjectByName('labels')?.removeFromParent();
+
+  // Export the complete building even when roof/walls are hidden in the viewer.
+  exportRoot.traverse((object) => {
+    object.visible = true;
+  });
+
+  let meshIndex = 0;
+  const usedNames = new Set();
+  exportRoot.traverse((object) => {
+    if (!object.isMesh) return;
+
+    meshIndex += 1;
+    let category = 'building';
+    let parent = object.parent;
+    while (parent && parent !== exportRoot) {
+      if (['walls', 'furniture', 'roof'].includes(parent.name)) {
+        category = parent.name;
+        break;
+      }
+      if (parent.name.startsWith('door-')) {
+        category = parent.name;
+        break;
+      }
+      parent = parent.parent;
+    }
+
+    const baseName = sanitizeExportName(object.name, 'mesh');
+    const categoryName = sanitizeExportName(category, 'building');
+    let candidate = `${categoryName}_${baseName}_${String(meshIndex).padStart(3, '0')}`;
+    let suffix = 2;
+    while (usedNames.has(candidate)) {
+      candidate = `${categoryName}_${baseName}_${String(meshIndex).padStart(3, '0')}_${suffix}`;
+      suffix += 1;
+    }
+    usedNames.add(candidate);
+    object.name = candidate;
+  });
+
+  exportRoot.updateMatrixWorld(true);
+  return exportRoot;
+}
+
 exportButton.addEventListener('click', async () => {
   const originalLabel = exportButton.textContent;
   exportButton.disabled = true;
-  exportButton.textContent = 'Preparando OBJ…';
+  exportButton.textContent = 'Preparando GLB…';
   try {
-    const { OBJExporter } = await import('three/addons/exporters/OBJExporter.js');
-    const exporter = new OBJExporter();
-    const obj = exporter.parse(plan.root);
-    downloadFile('casa-patio-roblox.obj', obj);
+    const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+    const exporter = new GLTFExporter();
+    const exportRoot = createRobloxExportRoot(plan.root);
+    const glb = await exporter.parseAsync(exportRoot, {
+      binary: true,
+      onlyVisible: false,
+      maxTextureSize: 2048,
+    });
+    downloadBlob('casa-patio-roblox.glb', new Blob([glb], { type: 'model/gltf-binary' }));
+  } catch (error) {
+    console.error('No se pudo exportar el GLB para Roblox.', error);
+    window.alert(`No se pudo exportar el GLB: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     exportButton.disabled = false;
     exportButton.textContent = originalLabel;

@@ -1,1 +1,1 @@
-Corrige la reproducción de música en dispositivos móviles
+Exporta el modelo en GLB con materiales y jerarquía para Roblox

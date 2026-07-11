@@ -475,6 +475,10 @@ const mats = {
   }),
 };
 
+Object.entries(mats).forEach(([name, mat]) => {
+  mat.name = name;
+});
+
 function applyThemeToMaterials(themeName = 'arena') {
   const theme = THEME_PRESETS[themeName] ?? THEME_PRESETS.arena;
   const textures = getTextures(themeName);
