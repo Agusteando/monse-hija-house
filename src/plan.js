@@ -670,9 +670,17 @@ function addDoor(group, colliders, doors, {
   openAngle,
   openByDefault = false,
 }) {
+  const openRotation = closedRotation + openAngle;
   const pivot = new THREE.Group();
   pivot.name = `door-${id}`;
   pivot.position.set(hingeX, 0, hingeZ);
+  pivot.userData.robloxDoor = {
+    id,
+    label,
+    closedRotation,
+    openRotation,
+    openByDefault,
+  };
 
   const thickness = 0.055;
   const slab = meshRoundedBox(width, 2.06, thickness, 0.018, mats.wood, width / 2, 1.03, 0);
@@ -698,7 +706,6 @@ function addDoor(group, colliders, doors, {
   };
   colliders.push(collider);
 
-  const openRotation = closedRotation + openAngle;
   const door = {
     id,
     label,
@@ -754,10 +761,32 @@ function addCylinderLegs(group, positions, height = 0.7, radius = 0.035, mat = m
   });
 }
 
-function addChair(group, x, z, rotation = 0, frameMat = mats.wood, seatMat = mats.upholstery, scale = 1) {
+function addChair(
+  group,
+  x,
+  z,
+  rotation = 0,
+  frameMat = mats.wood,
+  seatMat = mats.upholstery,
+  scale = 1,
+  seatId = 'chair',
+) {
   const chair = new THREE.Group();
+  chair.name = `seat-${seatId}`;
   chair.position.set(x, 0, z);
   chair.rotation.y = rotation;
+  chair.userData.robloxSeatHost = {
+    id: seatId,
+    label: 'Silla',
+    seats: [
+      {
+        id: seatId,
+        label: 'Silla',
+        position: [0, 0.53, -0.01],
+        size: [0.36 * scale, 0.08, 0.34 * scale],
+      },
+    ],
+  };
   chair.add(meshRoundedBox(0.44 * scale, 0.065, 0.43 * scale, 0.045, frameMat, 0, 0.44, 0));
   chair.add(meshRoundedBox(0.39 * scale, 0.055, 0.37 * scale, 0.035, seatMat, 0, 0.5, 0.01));
   chair.add(meshRoundedBox(0.42 * scale, 0.47, 0.055, 0.025, seatMat, 0, 0.77, 0.17 * scale));
@@ -797,12 +826,12 @@ function addDining(group, colliders) {
   );
   addCollider(colliders, x, z, tableWidth, tableDepth, 0, 0.9);
 
-  addChair(group, x - 0.79, z - 0.39, -Math.PI / 2, mats.wood, mats.upholstery, 0.95);
-  addChair(group, x - 0.79, z + 0.39, -Math.PI / 2, mats.wood, mats.upholstery, 0.95);
-  addChair(group, x + 0.79, z - 0.39, Math.PI / 2, mats.wood, mats.upholstery, 0.95);
-  addChair(group, x + 0.79, z + 0.39, Math.PI / 2, mats.wood, mats.upholstery, 0.95);
-  addChair(group, x, z - 0.91, Math.PI, mats.wood, mats.upholstery, 0.95);
-  addChair(group, x, z + 0.91, 0, mats.wood, mats.upholstery, 0.95);
+  addChair(group, x - 0.79, z - 0.39, -Math.PI / 2, mats.wood, mats.upholstery, 0.95, 'dining-01');
+  addChair(group, x - 0.79, z + 0.39, -Math.PI / 2, mats.wood, mats.upholstery, 0.95, 'dining-02');
+  addChair(group, x + 0.79, z - 0.39, Math.PI / 2, mats.wood, mats.upholstery, 0.95, 'dining-03');
+  addChair(group, x + 0.79, z + 0.39, Math.PI / 2, mats.wood, mats.upholstery, 0.95, 'dining-04');
+  addChair(group, x, z - 0.91, Math.PI, mats.wood, mats.upholstery, 0.95, 'dining-05');
+  addChair(group, x, z + 0.91, 0, mats.wood, mats.upholstery, 0.95, 'dining-06');
 
   const pendant = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.25, 0.22, 24), mats.bronze);
   pendant.position.set(x, 2.17, z);
@@ -816,8 +845,27 @@ function addSofa(group, colliders) {
   const z = 1.26;
   const rotation = -Math.PI / 2;
   const sofa = new THREE.Group();
+  sofa.name = 'seat-living-sofa';
   sofa.position.set(x, 0, z);
   sofa.rotation.y = rotation;
+  sofa.userData.robloxSeatHost = {
+    id: 'living-sofa',
+    label: 'Sofá',
+    seats: [
+      {
+        id: 'living-sofa-left',
+        label: 'Sofá',
+        position: [-0.46, 0.49, -0.04],
+        size: [0.72, 0.1, 0.56],
+      },
+      {
+        id: 'living-sofa-right',
+        label: 'Sofá',
+        position: [0.46, 0.49, -0.04],
+        size: [0.72, 0.1, 0.56],
+      },
+    ],
+  };
   sofa.add(meshRoundedBox(1.86, 0.27, 0.82, 0.075, mats.upholstery, 0, 0.27, 0));
   sofa.add(meshRoundedBox(1.82, 0.51, 0.13, 0.045, mats.upholstery, 0, 0.56, 0.31));
   sofa.add(meshRoundedBox(0.14, 0.43, 0.76, 0.04, mats.upholstery, -0.85, 0.43, 0));
@@ -1019,9 +1067,23 @@ function addKitchen(group, colliders, appliances) {
   addCollider(colliders, barX, barZ, 3.22, 0.62, 0, 1.08);
   addCollider(colliders, 3.95, 6.08, 0.62, 2.25, 0, 1.08);
 
-  [1.47, 2.18, 2.89, 3.6].forEach((px) => {
+  [1.47, 2.18, 2.89, 3.6].forEach((px, index) => {
+    const seatId = `kitchen-stool-${String(index + 1).padStart(2, '0')}`;
     const stool = new THREE.Group();
+    stool.name = `seat-${seatId}`;
     stool.position.set(px, 0, 4.28);
+    stool.userData.robloxSeatHost = {
+      id: seatId,
+      label: 'Banco de cocina',
+      seats: [
+        {
+          id: seatId,
+          label: 'Banco de cocina',
+          position: [0, 0.69, -0.01],
+          size: [0.34, 0.08, 0.31],
+        },
+      ],
+    };
     stool.add(meshRoundedBox(0.4, 0.06, 0.38, 0.045, mats.accentA, 0, 0.66, 0));
     stool.add(meshRoundedBox(0.37, 0.31, 0.05, 0.025, mats.accentA, 0, 0.88, 0.14));
     addCylinderLegs(stool, [[-0.13, 0.32, -0.11], [0.13, 0.32, -0.11], [-0.13, 0.32, 0.11], [0.13, 0.32, 0.11]], 0.64, 0.021, mats.darkWood);

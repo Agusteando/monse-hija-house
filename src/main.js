@@ -344,13 +344,16 @@ function downloadBlob(name, blob) {
 exportButton.addEventListener('click', async () => {
   const originalLabel = exportButton.textContent;
   exportButton.disabled = true;
-  exportButton.textContent = 'Creando PNG y paquete…';
+  exportButton.textContent = 'Creando texturas e interacciones…';
   try {
     const result = await buildRobloxImportPackage(plan.root);
     downloadBlob(result.fileName, result.blob);
     window.alert(
-      `Paquete listo: ${result.meshCount} mallas, ${result.materialCount} materiales y ${result.textureCount} texturas PNG.\n\n` +
-        'Extrae el ZIP y selecciona el archivo .gltf desde File > Import en Roblox Studio.',
+      `Paquete listo: ${result.visibleMeshCount} mallas visibles, ${result.textureCount} texturas PNG, ` +
+        `${result.doorCount} puertas y ${result.seatCount} asientos Roblox.\n\n` +
+        '1) Extrae el ZIP e importa casa-patio-roblox.gltf.\n' +
+        '2) Selecciona el Model importado.\n' +
+        '3) Ejecuta roblox-install-command.lua en View > Command Bar.',
     );
   } catch (error) {
     console.error('No se pudo exportar el paquete para Roblox.', error);

@@ -1,1 +1,1 @@
-Corrige la exportación de materiales y texturas para Roblox
+Añade puertas interactivas y asientos nativos al exportador de Roblox
